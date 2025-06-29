@@ -1,1 +1,1 @@
-# rnear-contract
+# rNEAR
