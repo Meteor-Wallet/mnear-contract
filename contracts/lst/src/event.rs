@@ -167,9 +167,6 @@ pub enum Event<'a> {
     RemoveBeneficiary {
         account_id: &'a AccountId,
     },
-    SetTreasury {
-        account_id: &'a AccountId,
-    },
     SetWhitelist {
         account_id: &'a AccountId,
     },
