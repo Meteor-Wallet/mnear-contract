@@ -27,7 +27,7 @@ pub struct Summary {
 
 #[near]
 impl Contract {
-    pub fn lst_price(&self) -> U128 {
+    pub fn ft_price(&self) -> U128 {
         self.staked_amount_from_num_shares_rounded_down(ONE_NEAR)
             .into()
     }
@@ -40,7 +40,7 @@ impl Contract {
         Summary {
             total_share_amount: self.data().token.total_supply.into(),
             total_staked_near_amount: self.data().total_staked_near_amount.into(),
-            ft_price: self.lst_price(),
+            ft_price: self.ft_price(),
             validators_num: self.data().validator_pool.count(),
             stake_amount_to_settle: self.data().stake_amount_to_settle.into(),
             unstake_amount_to_settle: self.data().unstake_amount_to_settle.into(),

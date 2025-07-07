@@ -14,7 +14,7 @@ async fn test_ft_metadata() {
 async fn test_lst_price() {
     let worker = near_workspaces::sandbox().await.unwrap();
     let context = Context::new(&worker, None).await;
-    let lst_price = context.lst_contract.lst_price().await.unwrap().0;
+    let lst_price = context.lst_contract.ft_price().await.unwrap().0;
     assert_eq!(lst_price, NearToken::from_near(1).as_yoctonear());
 }
 

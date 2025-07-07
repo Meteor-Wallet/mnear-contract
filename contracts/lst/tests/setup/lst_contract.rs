@@ -14,9 +14,9 @@ impl LstContract {
             .json::<U128>()
     }
 
-    pub async fn lst_price(&self) -> Result<U128> {
+    pub async fn ft_price(&self) -> Result<U128> {
         self.0
-            .call("lst_price")
+            .call("ft_price")
             .args_json(json!({}))
             .view()
             .await
