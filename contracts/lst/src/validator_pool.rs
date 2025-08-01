@@ -380,32 +380,40 @@ impl ValidatorPool {
 
 #[near]
 impl Contract {
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn add_validator(&mut self, validator_id: AccountId, weight: u16) {
+        assert_one_yocto();
         self.add_whitelisted_validator(&validator_id, weight);
     }
 
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn add_validators(&mut self, validator_ids: Vec<AccountId>, weights: Vec<u16>) {
+        assert_one_yocto();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
         for i in 0..validator_ids.len() {
             self.add_whitelisted_validator(&validator_ids[i], weights[i]);
         }
     }
 
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn remove_validator(&mut self, validator_id: AccountId) -> Validator {
+        assert_one_yocto();
         self.data_mut()
             .validator_pool
             .remove_validator(&validator_id)
     }
 
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn update_weight(&mut self, validator_id: AccountId, weight: u16) {
+        assert_one_yocto();
         let old_weight = self
             .data_mut()
             .validator_pool
@@ -418,9 +426,11 @@ impl Contract {
         .emit();
     }
 
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn update_weights(&mut self, validator_ids: Vec<AccountId>, weights: Vec<u16>) {
+        assert_one_yocto();
         require!(validator_ids.len() == weights.len(), ERR_BAD_VALIDATOR_LIST);
 
         require!(
@@ -453,9 +463,11 @@ impl Contract {
         .emit();
     }
 
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn update_base_stake_amounts(&mut self, validator_ids: Vec<AccountId>, amounts: Vec<U128>) {
+        assert_one_yocto();
         require!(validator_ids.len() == amounts.len(), ERR_BAD_VALIDATOR_LIST);
         for i in 0..validator_ids.len() {
             self.data_mut()
@@ -493,9 +505,11 @@ impl Contract {
     /// This method is designed to drain a validator.
     /// The weight of target validator should be set to 0 before calling this.
     /// And a following call to drain_withdraw MUST be made after 4 epochs.
+    #[payable]
     #[access_control_any(roles(Role::OpManager, Role::DAO))]
     #[pause]
     pub fn drain_unstake(&mut self, validator_id: AccountId) -> Promise {
+        assert_one_yocto();
         // make sure enough gas was given
         let min_gas = GAS_DRAIN_UNSTAKE.as_gas()
             + GAS_EXT_UNSTAKE.as_gas()

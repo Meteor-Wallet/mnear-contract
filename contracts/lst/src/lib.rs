@@ -51,7 +51,6 @@ pub use validator::*;
 pub use validator_pool::*;
 pub use view::*;
 
-pub type ContractResult<T> = Result<T, ContractError>;
 pub type ShareBalance = u128;
 
 #[near(serializers = [json])]
@@ -77,7 +76,6 @@ pub struct ContractData {
     pub token: FungibleToken,
     pub metadata: LazyOption<FungibleTokenMetadata>,
     owner_id: AccountId,
-    treasury_id: AccountId,
     total_staked_near_amount: u128,
     accounts: IterableMap<AccountId, Account>,
     account_storage_usage: StorageUsage,
@@ -142,7 +140,6 @@ impl Contract {
                     })),
                 ),
                 owner_id: owner_id.clone(),
-                treasury_id: owner_id.clone(),
                 total_staked_near_amount: 0,
                 accounts: IterableMap::new(StorageKey::Accounts),
                 account_storage_usage: 0,

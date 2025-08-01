@@ -56,19 +56,6 @@ impl Contract {
         .emit();
     }
 
-    /// Set account ID of the treasury
-    #[pause]
-    #[payable]
-    pub fn set_treasury(&mut self, account_id: AccountId) {
-        self.assert_owner();
-        assert_one_yocto();
-        self.data_mut().treasury_id = account_id.clone();
-        Event::SetTreasury {
-            account_id: &account_id,
-        }
-        .emit();
-    }
-
     /// Set whitelist account ID
     #[pause]
     #[payable]
