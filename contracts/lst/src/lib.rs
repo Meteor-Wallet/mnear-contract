@@ -167,6 +167,19 @@ impl Contract {
 
         contract
     }
+
+    #[payable]
+    pub fn donate(&mut self) {
+        let amount = env::attached_deposit().as_yoctonear();
+        self.data_mut().total_staked_near_amount += amount;
+        // Increase requested stake amount within the current epoch
+        self.data_mut().epoch_requested_stake_amount += amount;
+        Event::Donate {
+            account_id: env::predecessor_account_id(),
+            amount: amount.into(),
+        }
+        .emit();
+    }
 }
 
 impl Contract {
