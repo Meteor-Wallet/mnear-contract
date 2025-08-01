@@ -7,13 +7,13 @@ impl Contract {
     #[handle_result(aliased)]
     #[private]
     #[init(ignore_state)]
-    pub fn migrate_state() -> ContractResult<Self> {
+    pub fn migrate_state() -> Self {
         let mut contract: Contract =
-            env::state_read().ok_or(GlobalError::ContractStateIsMissing)?;
+            env::state_read().expect("ContractStateIsMissing");
         contract.data = match contract.data {
             VersionedContractData::Current(data) => VersionedContractData::Current(data),
         };
-        Ok(contract)
+        contract
     }
 
     /// Returns semver of this contract.

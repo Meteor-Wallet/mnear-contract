@@ -51,7 +51,6 @@ pub use validator::*;
 pub use validator_pool::*;
 pub use view::*;
 
-pub type ContractResult<T> = Result<T, ContractError>;
 pub type ShareBalance = u128;
 
 #[near(serializers = [json])]
