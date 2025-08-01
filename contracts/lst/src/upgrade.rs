@@ -4,7 +4,6 @@ use crate::*;
 impl Contract {
     /// A method to migrate a state during the contract upgrade.
     /// Can only be called after upgrade method.
-    #[handle_result(aliased)]
     #[private]
     #[init(ignore_state)]
     pub fn migrate_state() -> Self {
