@@ -39,13 +39,13 @@ impl Contract {
         self.data().owner_id.clone()
     }
 
-    /// Returns the current reward fee as a fraction.
-    /// Weighted average fee of all validators: 4.9%, treasury fee 1%.
-    /// Total fee: 100% - (100% - 4.9%) * (100% - 1%)
     pub fn get_reward_fee_fraction(&self) -> RewardFeeFraction {
         RewardFeeFraction {
-            numerator: 58,
-            denominator: 1000,
+            numerator: self.data()
+                .beneficiaries
+                .values()
+                .sum(),
+            denominator: 10000,
         }
     }
 
