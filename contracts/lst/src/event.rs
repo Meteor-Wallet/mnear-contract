@@ -172,6 +172,10 @@ pub enum Event<'a> {
     },
     PauseContract {},
     ResumeContract {},
+    Donate {
+        account_id: AccountId,
+        amount: U128,
+    },
 }
 
 impl Event<'_> {
