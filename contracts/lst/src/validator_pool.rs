@@ -320,7 +320,7 @@ impl ValidatorPool {
 
         // make sure this validator is not used at all
         require!(
-            validator.staked_amount == 0 && validator.unstaked_amount == 0,
+            validator.staked_amount == 0 && validator.unstaked_amount == 0 && !validator.executing,
             ERR_VALIDATOR_IN_USE
         );
 
