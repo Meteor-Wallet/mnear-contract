@@ -27,11 +27,15 @@ impl Contract {
         let mut hashmap_iter = hashmap.iter().peekable();
         while let Some((account_id, bps)) = hashmap_iter.next() {
             if hashmap_iter.peek().is_none() {
-                self.mint_lst(account_id, remain_reward_shares, Some("beneficiary rewards"));
+                if remain_reward_shares > 0 {
+                    self.mint_lst(account_id, remain_reward_shares, Some("beneficiary rewards"));
+                }
             } else {
                 let reward_shares = total_reward_shares * *bps as u128 / total_bps as u128;
-                self.mint_lst(account_id, reward_shares, Some("beneficiary rewards"));
-                remain_reward_shares -= reward_shares;
+                if reward_shares > 0 {
+                    self.mint_lst(account_id, reward_shares, Some("beneficiary rewards"));
+                    remain_reward_shares -= reward_shares;
+                }
             }
         }
     }
