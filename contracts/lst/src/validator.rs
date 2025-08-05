@@ -184,6 +184,10 @@ impl Validator {
         pool.save_validator(self);
     }
 
+    pub fn on_get_account_total_balance_failed(&mut self, pool: &mut ValidatorPool) {
+        self.post_execution(pool);
+    }
+    
     /// Due to shares calculation and rounding of staking pool contract,
     /// the amount of staked and unstaked balance might be a little bit
     /// different than we requested.

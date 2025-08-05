@@ -366,32 +366,38 @@ impl Contract {
     pub fn validator_get_balance_callback(
         &mut self,
         validator_id: AccountId,
-        #[callback] total_balance: U128,
+        #[callback_result] call_result: Result<U128, PromiseError>,
     ) {
         let mut validator = self
             .data_mut()
             .validator_pool
             .get_validator(&validator_id)
             .expect(ERR_VALIDATOR_NOT_EXIST);
+        match call_result {
+            Ok(total_balance) => {
+                let new_balance = total_balance.0;
+                let rewards = new_balance - validator.total_balance();
+                Event::EpochUpdateRewards {
+                    validator_id: &validator_id,
+                    old_balance: &U128(validator.total_balance()),
+                    new_balance: &U128(new_balance),
+                    rewards: &U128(rewards),
+                }
+                .emit();
 
-        let new_balance = total_balance.0;
-        let rewards = new_balance - validator.total_balance();
-        Event::EpochUpdateRewards {
-            validator_id: &validator_id,
-            old_balance: &U128(validator.total_balance()),
-            new_balance: &U128(new_balance),
-            rewards: &U128(rewards),
+                validator.on_new_total_balance(&mut self.data_mut().validator_pool, new_balance);
+
+                if rewards == 0 {
+                    return;
+                }
+
+                self.data_mut().total_staked_near_amount += rewards;
+                self.internal_distribute_staking_rewards(rewards);
+            }
+            Err(_) => {
+                validator.on_get_account_total_balance_failed(&mut self.data_mut().validator_pool);
+            }
         }
-        .emit();
-
-        validator.on_new_total_balance(&mut self.data_mut().validator_pool, new_balance);
-
-        if rewards == 0 {
-            return;
-        }
-
-        self.data_mut().total_staked_near_amount += rewards;
-        self.internal_distribute_staking_rewards(rewards);
     }
 
     /// Callback after get the contract account balance from the validator

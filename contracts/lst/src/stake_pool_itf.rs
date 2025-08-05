@@ -101,8 +101,12 @@ impl Contract {
     #[payable]
     pub fn deposit(&mut self) {
         let amount = env::attached_deposit().as_yoctonear();
-        let storage_used = if self.storage_balance_of(env::predecessor_account_id()).is_none() {
-            self.storage_deposit(None, None);
+        let account_id = env::predecessor_account_id();
+        let storage_used = if self.storage_balance_of(account_id.clone()).is_none() {
+            self.data_mut()
+                .accounts
+                .insert(account_id.clone(), Account::default());
+            self.data_mut().token.internal_register_account(&account_id);
             self.storage_balance_bounds().min.as_yoctonear()
         } else {
             0
@@ -116,9 +120,12 @@ impl Contract {
     #[payable]
     pub fn deposit_and_stake(&mut self) -> U128 {
         let amount = env::attached_deposit().as_yoctonear();
-        let storage_used = if self.storage_balance_of(env::predecessor_account_id()).is_none() {
-            self.storage_deposit(None, None);
-            // log!("do register, use {}", self.storage_balance_bounds().min.as_yoctonear());
+        let account_id = env::predecessor_account_id();
+        let storage_used = if self.storage_balance_of(account_id.clone()).is_none() {
+            self.data_mut()
+                .accounts
+                .insert(account_id.clone(), Account::default());
+            self.data_mut().token.internal_register_account(&account_id);
             self.storage_balance_bounds().min.as_yoctonear()
         } else {
             // log!("already registered.");

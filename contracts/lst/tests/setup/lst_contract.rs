@@ -457,6 +457,7 @@ impl LstContract {
                 "weight": weight
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
@@ -474,6 +475,7 @@ impl LstContract {
                 "weights": weights
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
@@ -489,6 +491,7 @@ impl LstContract {
                 "validator_id": validator_id
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
@@ -506,6 +509,7 @@ impl LstContract {
                 "weight": weight
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
@@ -523,6 +527,7 @@ impl LstContract {
                 "weights": weights
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
@@ -540,6 +545,7 @@ impl LstContract {
                 "amounts": amounts.iter().map(|x| x.to_string()).collect::<Vec<_>>()
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
@@ -571,6 +577,7 @@ impl LstContract {
                 "validator_id": validator_id
             }))
             .max_gas()
+            .deposit(NearToken::from_yoctonear(1))
             .transact()
             .await
     }
