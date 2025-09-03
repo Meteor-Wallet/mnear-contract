@@ -117,7 +117,11 @@ impl Contract {
     }
 
     #[pause]
-    pub(crate) fn internal_rnear_stake(&mut self, near_amount: u128) -> ShareBalance {
+    pub(crate) fn internal_rnear_stake(
+        &mut self,
+        near_amount: u128,
+        rnear_amount: u128,
+    ) -> ShareBalance {
         require!(near_amount > 0, ERR_NON_POSITIVE_STAKING_AMOUNT);
 
         let account_id = env::predecessor_account_id();
@@ -136,6 +140,7 @@ impl Contract {
         self.mint_lst(&account_id, num_shares, Some("stake"));
         self.internal_save_account(&account_id, &account);
         self.data_mut().total_staked_asset_in_near += near_amount;
+        self.data_mut().rnear_balance += rnear_amount;
 
         Event::Stake {
             account_id: &account_id,

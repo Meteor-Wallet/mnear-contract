@@ -67,11 +67,11 @@ impl FungibleTokenReceiver for Contract {
         let account_id = sender_id;
         assert!(self.storage_balance_of(account_id.clone()).is_some());
 
-        let near_amount = self.internal_convert_rnear_to_near(amount.0);
+        let rnear_amount = amount.0;
+        let near_amount = self.internal_convert_rnear_to_near(rnear_amount);
 
         self.internal_deposit(near_amount);
-        self.internal_rnear_stake(near_amount);
-        self.data_mut().rnear_balance += amount.0;
+        self.internal_rnear_stake(near_amount, rnear_amount);
 
         PromiseOrValue::Value(U128(0))
     }
