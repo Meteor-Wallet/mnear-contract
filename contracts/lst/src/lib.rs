@@ -1,13 +1,10 @@
+use near_contract_standards::fungible_token::{
+    events::{FtBurn, FtMint},
+    metadata::{FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC},
+    FungibleToken, FungibleTokenCore, FungibleTokenResolver,
+};
 use near_contract_standards::storage_management::{
     StorageBalance, StorageBalanceBounds, StorageManagement,
-};
-use near_contract_standards::{
-    fungible_token::{
-        events::{FtBurn, FtMint},
-        metadata::{FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC},
-        FungibleToken, FungibleTokenCore, FungibleTokenResolver,
-    },
-    non_fungible_token::Token,
 };
 use near_plugins::{
     access_control, access_control_any, pause, AccessControlRole, AccessControllable, Pausable,
@@ -20,9 +17,10 @@ use near_sdk::{
     json_types::{U128, U64},
     log, near, require,
     serde::{Deserialize, Serialize},
+    serde_json,
     store::{IterableMap, LazyOption},
     AccountId, BorshStorageKey, EpochHeight, Gas, NearToken, PanicOnDefault, Promise, PromiseError,
-    PromiseOrValue, PublicKey, StorageUsage,
+    PromiseOrValue, PromiseResult, PublicKey, StorageUsage,
 };
 use std::cmp::min;
 use std::collections::HashMap;
@@ -36,6 +34,7 @@ mod event;
 mod ft;
 mod internal;
 mod owner;
+mod rnear;
 mod stake_pool_itf;
 mod storage;
 mod upgrade;
@@ -49,6 +48,7 @@ pub use big_decimal::*;
 pub use burrow::*;
 pub use errors::*;
 pub use event::*;
+pub use rnear::*;
 pub use utils::*;
 pub use validator::*;
 pub use validator_pool::*;
@@ -85,6 +85,7 @@ pub struct ContractData {
     beneficiaries: IterableMap<AccountId, u32>,
     validator_pool: ValidatorPool,
     rnear_contract_id: TokenId,
+    rnear_price: EstimatedBalance,
     wnear_contract_id: TokenId,
     burrow_contract_id: AccountId,
     whitelist_account_id: Option<AccountId>,
@@ -159,6 +160,11 @@ impl Contract {
                 beneficiaries: IterableMap::new(StorageKey::Beneficiaries),
                 validator_pool: ValidatorPool::new(),
                 rnear_contract_id: rnear_contract_id.unwrap_or("lst.rhealab.near".parse().unwrap()),
+                rnear_price: EstimatedBalance {
+                    balance: 0,
+                    last_updated: 0,
+                    apr: 0,
+                },
                 wnear_contract_id: wnear_contract_id.unwrap_or("wrap.near".parse().unwrap()),
                 burrow_contract_id: burrow_contract_id
                     .unwrap_or("contract.main.burrow.near".parse().unwrap()),

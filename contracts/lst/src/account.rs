@@ -173,8 +173,8 @@ impl Contract {
         self.burn_lst(&account_id, num_shares, Some("unstake"));
 
         account.unstaked += amount;
-        account.last_unstake_request_epoch_height =
-            get_epoch_height() + self.data().validator_pool.get_num_epoch_to_unstake(amount);
+        account.last_unstake_request_epoch_height = get_epoch_height();
+
         if [
             self.data().last_settlement_epoch,
             self.data().last_settlement_initiated_epoch,
