@@ -25,6 +25,8 @@ use std::cmp::min;
 use std::collections::HashMap;
 
 mod account;
+mod big_decimal;
+mod burrow;
 mod epoch_actions;
 mod errors;
 mod event;
@@ -42,6 +44,8 @@ mod validator_pool;
 mod view;
 
 pub use account::*;
+pub use big_decimal::*;
+pub use burrow::*;
 pub use errors::*;
 pub use event::*;
 #[cfg(test)]
