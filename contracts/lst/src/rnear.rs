@@ -17,7 +17,7 @@ impl EstimatedBalance {
 
         compute_interest_rate(
             self.balance,
-            self.balance,
+            current_balance,
             self.last_updated,
             env::block_timestamp(),
         )
