@@ -15,12 +15,13 @@ impl EstimatedBalance {
             return 0;
         }
 
-        compute_interest_rate(
-            self.balance,
-            current_balance,
-            self.last_updated,
-            env::block_timestamp(),
-        )
+        let delta_balance = U384::from(current_balance - self.balance);
+        let delta_time = U384::from(env::block_timestamp() - self.last_updated);
+        let big_divisor = U384::from(BIG_DIVISOR);
+
+        let rate = (delta_balance * big_divisor) / delta_time;
+
+        rate.as_u128()
     }
 
     pub fn estimate_current_balance(&self) -> Balance {
@@ -28,43 +29,14 @@ impl EstimatedBalance {
             return self.balance;
         }
 
-        estimate_balance(
-            self.balance,
-            self.last_updated,
-            self.apr,
-            env::block_timestamp(),
-        )
+        let delta_time = U384::from(env::block_timestamp() - self.last_updated);
+        let rate = U384::from(self.apr);
+        let big_divisor = U384::from(BIG_DIVISOR);
+
+        let future_balance = U384::from(self.balance) + (rate * delta_time) / big_divisor;
+
+        future_balance.as_u128()
     }
-}
-
-pub fn compute_interest_rate(
-    old_balance: Balance,
-    current_balance: Balance,
-    old_timestamp: EpochHeight,
-    current_timestamp: EpochHeight,
-) -> u128 {
-    let delta_balance = U384::from(current_balance - old_balance);
-    let delta_time = U384::from(current_timestamp - old_timestamp);
-    let big_divisor = U384::from(BIG_DIVISOR);
-
-    let rate = (delta_balance * big_divisor) / delta_time;
-
-    rate.as_u128()
-}
-
-pub fn estimate_balance(
-    old_balance: Balance,
-    old_timestamp: EpochHeight,
-    rate: Rate,
-    future_timestamp: EpochHeight,
-) -> Balance {
-    let delta_time = U384::from(future_timestamp - old_timestamp);
-    let rate = U384::from(rate);
-    let big_divisor = U384::from(BIG_DIVISOR);
-
-    let future_balance = U384::from(old_balance) + (rate * delta_time) / big_divisor;
-
-    future_balance.as_u128()
 }
 
 #[ext_contract(ext_rnear)]
