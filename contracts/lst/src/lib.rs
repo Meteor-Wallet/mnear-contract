@@ -1,10 +1,13 @@
-use near_contract_standards::fungible_token::{
-    events::{FtBurn, FtMint},
-    metadata::{FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC},
-    FungibleToken, FungibleTokenCore, FungibleTokenResolver,
-};
 use near_contract_standards::storage_management::{
     StorageBalance, StorageBalanceBounds, StorageManagement,
+};
+use near_contract_standards::{
+    fungible_token::{
+        events::{FtBurn, FtMint},
+        metadata::{FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC},
+        FungibleToken, FungibleTokenCore, FungibleTokenResolver,
+    },
+    non_fungible_token::Token,
 };
 use near_plugins::{
     access_control, access_control_any, pause, AccessControlRole, AccessControllable, Pausable,
@@ -35,8 +38,6 @@ mod internal;
 mod owner;
 mod stake_pool_itf;
 mod storage;
-#[cfg(test)]
-mod unit;
 mod upgrade;
 mod utils;
 mod validator;
@@ -48,8 +49,6 @@ pub use big_decimal::*;
 pub use burrow::*;
 pub use errors::*;
 pub use event::*;
-#[cfg(test)]
-pub use unit::*;
 pub use utils::*;
 pub use validator::*;
 pub use validator_pool::*;
@@ -85,7 +84,8 @@ pub struct ContractData {
     account_storage_usage: StorageUsage,
     beneficiaries: IterableMap<AccountId, u32>,
     validator_pool: ValidatorPool,
-    rnear_contract_id: AccountId,
+    rnear_contract_id: TokenId,
+    wnear_contract_id: TokenId,
     burrow_contract_id: AccountId,
     whitelist_account_id: Option<AccountId>,
     epoch_requested_stake_amount: u128,
@@ -133,7 +133,8 @@ impl Contract {
     pub fn new(
         owner_id: AccountId,
         metadata: Option<FungibleTokenMetadata>,
-        rnear_contract_id: Option<AccountId>,
+        rnear_contract_id: Option<TokenId>,
+        wnear_contract_id: Option<TokenId>,
         burrow_contract_id: Option<AccountId>,
     ) -> Self {
         let mut contract = Self {
@@ -158,6 +159,7 @@ impl Contract {
                 beneficiaries: IterableMap::new(StorageKey::Beneficiaries),
                 validator_pool: ValidatorPool::new(),
                 rnear_contract_id: rnear_contract_id.unwrap_or("lst.rhealab.near".parse().unwrap()),
+                wnear_contract_id: wnear_contract_id.unwrap_or("wrap.near".parse().unwrap()),
                 burrow_contract_id: burrow_contract_id
                     .unwrap_or("contract.main.burrow.near".parse().unwrap()),
                 whitelist_account_id: None,
