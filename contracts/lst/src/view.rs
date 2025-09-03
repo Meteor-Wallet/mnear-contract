@@ -39,7 +39,7 @@ impl Contract {
     pub fn get_summary(&self) -> Summary {
         Summary {
             total_share_amount: self.data().token.total_supply.into(),
-            total_staked_near_amount: self.data().total_staked_near_amount.into(),
+            total_staked_near_amount: self.data().total_staked_asset_in_near.into(),
             ft_price: self.ft_price(),
             validators_num: self.data().validator_pool.count(),
             stake_amount_to_settle: self.data().stake_amount_to_settle.into(),
@@ -84,7 +84,7 @@ impl Contract {
             .expect(ERR_VALIDATOR_NOT_EXIST)
             .get_info(
                 &self.data().validator_pool,
-                self.data().total_staked_near_amount,
+                self.data().total_staked_asset_in_near,
             )
     }
 
@@ -100,7 +100,7 @@ impl Contract {
             .map(|v| {
                 v.get_info(
                     &self.data().validator_pool,
-                    self.data().total_staked_near_amount,
+                    self.data().total_staked_asset_in_near,
                 )
             })
             .collect()

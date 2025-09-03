@@ -70,7 +70,7 @@ impl Contract {
 
         let candidate = self.data().validator_pool.get_candidate_to_stake(
             self.data().stake_amount_to_settle,
-            self.data().total_staked_near_amount,
+            self.data().total_staked_asset_in_near,
         );
 
         if candidate.is_none() {
@@ -155,7 +155,7 @@ impl Contract {
 
         let candidate = self.data().validator_pool.get_candidate_to_unstake_v2(
             self.data().unstake_amount_to_settle,
-            self.data().total_staked_near_amount,
+            self.data().total_staked_asset_in_near,
         );
         if candidate.is_none() {
             log!("no candidate found to unstake");
@@ -391,7 +391,7 @@ impl Contract {
                     return;
                 }
 
-                self.data_mut().total_staked_near_amount += rewards;
+                self.data_mut().total_staked_asset_in_near += rewards;
                 self.internal_distribute_staking_rewards(rewards);
             }
             Err(_) => {

@@ -42,12 +42,38 @@ impl EstimatedBalance {
 #[ext_contract(ext_rnear)]
 pub trait ExtRnear {
     fn ft_price(&self) -> U128;
+    fn deposit_and_stake(&mut self) -> U128;
 }
 
 #[near]
 impl Contract {
     pub fn rnear_deposit_rate(&self) -> U128 {
         U128(self.internal_convert_rnear_to_near(ONE_NEAR))
+    }
+}
+
+#[near]
+impl FungibleTokenReceiver for Contract {
+    fn ft_on_transfer(
+        &mut self,
+        sender_id: AccountId,
+        amount: U128,
+        msg: String,
+    ) -> PromiseOrValue<U128> {
+        let _ = msg;
+
+        assert!(env::predecessor_account_id() == self.data().rnear_contract_id);
+
+        let account_id = sender_id;
+        assert!(self.storage_balance_of(account_id.clone()).is_some());
+
+        let near_amount = self.internal_convert_rnear_to_near(amount.0);
+
+        self.internal_deposit(near_amount);
+        self.internal_rnear_stake(near_amount);
+        self.data_mut().rnear_balance += amount.0;
+
+        PromiseOrValue::Value(U128(0))
     }
 }
 

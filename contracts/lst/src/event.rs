@@ -129,7 +129,7 @@ pub enum Event<'a> {
         burnt_stake_shares: &'a U128,
         new_unstaked_balance: &'a U128,
         new_stake_shares: &'a U128,
-        unstaked_available_epoch_height: u64,
+        last_unstake_request_epoch_height: u64,
     },
     // Validators
     ValidatorAdded {

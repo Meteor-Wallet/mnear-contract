@@ -1,6 +1,7 @@
 use near_contract_standards::fungible_token::{
     events::{FtBurn, FtMint},
     metadata::{FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC},
+    receiver::FungibleTokenReceiver,
     FungibleToken, FungibleTokenCore, FungibleTokenResolver,
 };
 use near_contract_standards::storage_management::{
@@ -79,13 +80,14 @@ pub struct ContractData {
     pub token: FungibleToken,
     pub metadata: LazyOption<FungibleTokenMetadata>,
     owner_id: AccountId,
-    total_staked_near_amount: u128,
+    total_staked_asset_in_near: Balance,
     accounts: IterableMap<AccountId, Account>,
     account_storage_usage: StorageUsage,
     beneficiaries: IterableMap<AccountId, u32>,
     validator_pool: ValidatorPool,
     rnear_contract_id: TokenId,
     rnear_price: EstimatedBalance,
+    rnear_balance: Balance,
     wnear_contract_id: TokenId,
     burrow_contract_id: AccountId,
     whitelist_account_id: Option<AccountId>,
@@ -111,6 +113,8 @@ pub enum Role {
     UpgradableCodeStager,
     UpgradableCodeDeployer,
     OpManager,
+    Accountant,
+    Strategist,
 }
 
 #[near(contract_state)]
@@ -154,7 +158,7 @@ impl Contract {
                     })),
                 ),
                 owner_id: owner_id.clone(),
-                total_staked_near_amount: 0,
+                total_staked_asset_in_near: 0,
                 accounts: IterableMap::new(StorageKey::Accounts),
                 account_storage_usage: 0,
                 beneficiaries: IterableMap::new(StorageKey::Beneficiaries),
@@ -165,6 +169,7 @@ impl Contract {
                     last_updated: 0,
                     apr: 0,
                 },
+                rnear_balance: 0,
                 wnear_contract_id: wnear_contract_id.unwrap_or("wrap.near".parse().unwrap()),
                 burrow_contract_id: burrow_contract_id
                     .unwrap_or("contract.main.burrow.near".parse().unwrap()),
@@ -195,7 +200,7 @@ impl Contract {
     #[payable]
     pub fn donate(&mut self) {
         let amount = env::attached_deposit().as_yoctonear();
-        self.data_mut().total_staked_near_amount += amount;
+        self.data_mut().total_staked_asset_in_near += amount;
         // Increase requested stake amount within the current epoch
         self.data_mut().epoch_requested_stake_amount += amount;
         Event::Donate {
@@ -224,7 +229,7 @@ impl Contract {
 
     fn init_staking(&mut self) {
         require!(
-            self.data().total_staked_near_amount == 0,
+            self.data().total_staked_asset_in_near == 0,
             ERR_ALREADY_INITIALIZED
         );
         let account_id = env::current_account_id();
@@ -238,7 +243,7 @@ impl Contract {
             )
         );
         self.mint_lst(&account_id, INIT_STAKING_AMOUNT, Some("init_stake"));
-        self.data_mut().total_staked_near_amount += INIT_STAKING_AMOUNT;
+        self.data_mut().total_staked_asset_in_near += INIT_STAKING_AMOUNT;
         self.data_mut().epoch_requested_stake_amount += INIT_STAKING_AMOUNT;
     }
 
@@ -269,11 +274,11 @@ impl Contract {
     /// num_shares = amount * total_shares / total_staked
     pub(crate) fn num_shares_from_staked_amount_rounded_down(&self, amount: u128) -> ShareBalance {
         require!(
-            self.data().total_staked_near_amount > 0,
+            self.data().total_staked_asset_in_near > 0,
             ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
         );
         (U256::from(self.data().token.total_supply) * U256::from(amount)
-            / U256::from(self.data().total_staked_near_amount))
+            / U256::from(self.data().total_staked_asset_in_near))
         .as_u128()
     }
 
@@ -283,12 +288,12 @@ impl Contract {
     /// Rounding up division of `a / b` is done using `(a + b - 1) / b`.
     pub(crate) fn num_shares_from_staked_amount_rounded_up(&self, amount: u128) -> ShareBalance {
         require!(
-            self.data().total_staked_near_amount > 0,
+            self.data().total_staked_asset_in_near > 0,
             ERR_NON_POSITIVE_TOTAL_STAKED_BALANCE
         );
         ((U256::from(self.data().token.total_supply) * U256::from(amount)
-            + U256::from(self.data().total_staked_near_amount - 1))
-            / U256::from(self.data().total_staked_near_amount))
+            + U256::from(self.data().total_staked_asset_in_near - 1))
+            / U256::from(self.data().total_staked_asset_in_near))
         .as_u128()
     }
 
@@ -301,7 +306,7 @@ impl Contract {
             self.data().token.total_supply > 0,
             ERR_NON_POSITIVE_TOTAL_STAKE_SHARES
         );
-        (U256::from(self.data().total_staked_near_amount) * U256::from(num_shares)
+        (U256::from(self.data().total_staked_asset_in_near) * U256::from(num_shares)
             / U256::from(self.data().token.total_supply))
         .as_u128()
     }

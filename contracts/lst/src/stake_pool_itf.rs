@@ -31,7 +31,7 @@ impl Contract {
 
     /// Returns the total staking balance.
     pub fn get_total_staked_balance(&self) -> U128 {
-        self.data().total_staked_near_amount.into()
+        self.data().total_staked_asset_in_near.into()
     }
 
     /// Returns account ID of the staking pool owner.

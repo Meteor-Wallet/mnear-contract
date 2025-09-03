@@ -117,6 +117,45 @@ impl Contract {
     }
 
     #[pause]
+    pub(crate) fn internal_rnear_stake(&mut self, near_amount: u128) -> ShareBalance {
+        require!(near_amount > 0, ERR_NON_POSITIVE_STAKING_AMOUNT);
+
+        let account_id = env::predecessor_account_id();
+        let mut account = self.internal_get_account(&account_id);
+
+        // Calculate the number of "stake" shares that the account will receive for staking the
+        // given amount.
+        let num_shares = self.num_shares_from_staked_amount_rounded_down(near_amount);
+        require!(num_shares > 0, ERR_NON_POSITIVE_CALCULATED_STAKING_SHARE);
+
+        require!(
+            account.unstaked >= near_amount,
+            ERR_NO_ENOUGH_UNSTAKED_BALANCE
+        );
+        account.unstaked -= near_amount;
+        self.mint_lst(&account_id, num_shares, Some("stake"));
+        self.internal_save_account(&account_id, &account);
+        self.data_mut().total_staked_asset_in_near += near_amount;
+
+        Event::Stake {
+            account_id: &account_id,
+            staked_amount: &U128(near_amount),
+            minted_stake_shares: &U128(num_shares),
+            new_unstaked_balance: &U128(account.unstaked),
+            new_stake_shares: &U128(self.data().token.accounts.get(&account_id).unwrap_or(0)),
+        }
+        .emit();
+
+        log!(
+            "Contract total staked balance is {}. Total number of shares {}",
+            self.data().total_staked_asset_in_near,
+            self.data().token.total_supply
+        );
+
+        num_shares
+    }
+
+    #[pause]
     pub(crate) fn internal_stake(&mut self, amount: u128) -> ShareBalance {
         require!(amount > 0, ERR_NON_POSITIVE_STAKING_AMOUNT);
 
@@ -132,7 +171,7 @@ impl Contract {
         account.unstaked -= amount;
         self.mint_lst(&account_id, num_shares, Some("stake"));
         self.internal_save_account(&account_id, &account);
-        self.data_mut().total_staked_near_amount += amount;
+        self.data_mut().total_staked_asset_in_near += amount;
         // Increase requested stake amount within the current epoch
         self.data_mut().epoch_requested_stake_amount += amount;
 
@@ -147,7 +186,7 @@ impl Contract {
 
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
-            self.data().total_staked_near_amount,
+            self.data().total_staked_asset_in_near,
             self.data().token.total_supply
         );
 
@@ -162,7 +201,7 @@ impl Contract {
         let mut account = self.internal_get_account(&account_id);
 
         require!(
-            self.data().total_staked_near_amount > 0,
+            self.data().total_staked_asset_in_near > 0,
             ERR_CONTRACT_NO_STAKED_BALANCE
         );
         // Calculate the number of shares required to unstake the given amount.
@@ -189,7 +228,7 @@ impl Contract {
 
         self.internal_save_account(&account_id, &account);
 
-        self.data_mut().total_staked_near_amount -= amount;
+        self.data_mut().total_staked_asset_in_near -= amount;
 
         // Increase requested unstake amount within the current epoch
         self.data_mut().epoch_requested_unstake_amount += amount;
@@ -200,13 +239,13 @@ impl Contract {
             burnt_stake_shares: &U128(num_shares),
             new_unstaked_balance: &U128(account.unstaked),
             new_stake_shares: &U128(self.data().token.accounts.get(&account_id).unwrap_or(0)),
-            unstaked_available_epoch_height: account.last_unstake_request_epoch_height,
+            last_unstake_request_epoch_height: account.last_unstake_request_epoch_height,
         }
         .emit();
 
         log!(
             "Contract total staked balance is {}. Total number of shares {}",
-            self.data().total_staked_near_amount,
+            self.data().total_staked_asset_in_near,
             self.data().token.total_supply
         );
     }
