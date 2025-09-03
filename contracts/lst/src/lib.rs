@@ -1,7 +1,7 @@
 use near_contract_standards::fungible_token::{
     events::{FtBurn, FtMint},
     metadata::{FungibleTokenMetadata, FungibleTokenMetadataProvider, FT_METADATA_SPEC},
-    FungibleToken, FungibleTokenCore, FungibleTokenResolver
+    FungibleToken, FungibleTokenCore, FungibleTokenResolver,
 };
 use near_contract_standards::storage_management::{
     StorageBalance, StorageBalanceBounds, StorageManagement,
@@ -29,10 +29,10 @@ mod epoch_actions;
 mod errors;
 mod event;
 mod ft;
-mod storage;
 mod internal;
 mod owner;
 mod stake_pool_itf;
+mod storage;
 #[cfg(test)]
 mod unit;
 mod upgrade;
@@ -81,6 +81,8 @@ pub struct ContractData {
     account_storage_usage: StorageUsage,
     beneficiaries: IterableMap<AccountId, u32>,
     validator_pool: ValidatorPool,
+    rnear_contract_id: AccountId,
+    burrow_contract_id: AccountId,
     whitelist_account_id: Option<AccountId>,
     epoch_requested_stake_amount: u128,
     epoch_requested_unstake_amount: u128,
@@ -123,7 +125,12 @@ pub struct Contract {
 #[near]
 impl Contract {
     #[init]
-    pub fn new(owner_id: AccountId, metadata: Option<FungibleTokenMetadata>) -> Self {
+    pub fn new(
+        owner_id: AccountId,
+        metadata: Option<FungibleTokenMetadata>,
+        rnear_contract_id: Option<AccountId>,
+        burrow_contract_id: Option<AccountId>,
+    ) -> Self {
         let mut contract = Self {
             data: VersionedContractData::Current(ContractData {
                 token: FungibleToken::new(StorageKey::FungibleToken),
@@ -145,6 +152,9 @@ impl Contract {
                 account_storage_usage: 0,
                 beneficiaries: IterableMap::new(StorageKey::Beneficiaries),
                 validator_pool: ValidatorPool::new(),
+                rnear_contract_id: rnear_contract_id.unwrap_or("lst.rhealab.near".parse().unwrap()),
+                burrow_contract_id: burrow_contract_id
+                    .unwrap_or("contract.main.burrow.near".parse().unwrap()),
                 whitelist_account_id: None,
                 epoch_requested_stake_amount: 0,
                 epoch_requested_unstake_amount: 0,

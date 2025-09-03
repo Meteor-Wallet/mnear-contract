@@ -30,12 +30,12 @@ pub fn user_id() -> AccountId {
 pub fn init_unit_env() -> UnitEnv {
     let mut context = VMContextBuilder::new();
     testing_env!(context.predecessor_account_id(owner_id()).build());
-    let contract = Contract::new(owner_id(), None);
+    let contract = Contract::new(owner_id(), None, None, None);
     UnitEnv { contract, context }
 }
 
 pub fn init_contract() -> Contract {
-    Contract::new(owner_id(), None)
+    Contract::new(owner_id(), None, None, None)
 }
 
 pub struct UnitEnv {
