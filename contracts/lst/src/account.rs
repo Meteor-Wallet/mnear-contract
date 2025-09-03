@@ -14,7 +14,7 @@ pub struct Account {
 
     /// The minimum epoch height when the withdrawn is allowed.
     /// This changes after unstaking action, because the amount is still locked for 3 epochs.
-    pub unstaked_available_epoch_height: EpochHeight,
+    pub last_unstake_request_epoch_height: EpochHeight,
 }
 
 #[near(serializers = [json])]
@@ -37,7 +37,7 @@ pub struct AccountDetailsView {
     pub staked_balance: U128,
     /// The minimum epoch height when the withdrawn is allowed.
     /// This changes after unstaking action, because the amount is still locked for 3 epochs.
-    pub unstaked_available_epoch_height: EpochHeight,
+    pub last_unstake_request_epoch_height: EpochHeight,
     /// Whether the unstaked balance is available for withdrawal now.
     pub can_withdraw: bool,
 }
@@ -84,7 +84,7 @@ impl Contract {
             ERR_NO_ENOUGH_UNSTAKED_BALANCE_TO_WITHDRAW
         );
         require!(
-            account.unstaked_available_epoch_height <= get_epoch_height(),
+            account.last_unstake_request_epoch_height <= self.data().last_settlement_epoch,
             ERR_UNSTAKED_BALANCE_NOT_AVAILABLE
         );
         // Make sure the contract has enough NEAR for user to withdraw,
@@ -173,13 +173,18 @@ impl Contract {
         self.burn_lst(&account_id, num_shares, Some("unstake"));
 
         account.unstaked += amount;
-        account.unstaked_available_epoch_height =
+        account.last_unstake_request_epoch_height =
             get_epoch_height() + self.data().validator_pool.get_num_epoch_to_unstake(amount);
-        if self.data().last_settlement_epoch == get_epoch_height() {
+        if [
+            self.data().last_settlement_epoch,
+            self.data().last_settlement_initiated_epoch,
+        ]
+        .contains(&&get_epoch_height())
+        {
             // The unstake request is received after epoch_cleanup
             // so actual unstake will happen in the next epoch,
             // which will put withdraw off for one more epoch.
-            account.unstaked_available_epoch_height += 1;
+            account.last_unstake_request_epoch_height += 1;
         }
 
         self.internal_save_account(&account_id, &account);
@@ -195,7 +200,7 @@ impl Contract {
             burnt_stake_shares: &U128(num_shares),
             new_unstaked_balance: &U128(account.unstaked),
             new_stake_shares: &U128(self.data().token.accounts.get(&account_id).unwrap_or(0)),
-            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
+            unstaked_available_epoch_height: account.last_unstake_request_epoch_height,
         }
         .emit();
 

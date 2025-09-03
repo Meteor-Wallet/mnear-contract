@@ -41,10 +41,7 @@ impl Contract {
 
     pub fn get_reward_fee_fraction(&self) -> RewardFeeFraction {
         RewardFeeFraction {
-            numerator: self.data()
-                .beneficiaries
-                .values()
-                .sum(),
+            numerator: self.data().beneficiaries.values().sum(),
             denominator: 10000,
         }
     }
@@ -69,7 +66,7 @@ impl Contract {
             staked_balance: self
                 .staked_amount_from_num_shares_rounded_down(stake_shares.into())
                 .into(),
-            can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
+            can_withdraw: account.last_unstake_request_epoch_height <= get_epoch_height(),
         }
     }
 
@@ -111,7 +108,7 @@ impl Contract {
         } else {
             0
         };
-        self.internal_deposit(amount-storage_used);
+        self.internal_deposit(amount - storage_used);
     }
 
     /// Deposits the attached amount into the inner account of the predecessor and stakes it.

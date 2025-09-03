@@ -63,8 +63,8 @@ impl Contract {
                     self.data().token.accounts.get(&account_id).unwrap_or(0),
                 )
                 .into(),
-            unstaked_available_epoch_height: account.unstaked_available_epoch_height,
-            can_withdraw: account.unstaked_available_epoch_height <= get_epoch_height(),
+            last_unstake_request_epoch_height: account.last_unstake_request_epoch_height,
+            can_withdraw: account.last_unstake_request_epoch_height <= get_epoch_height(),
             account_id,
         }
     }

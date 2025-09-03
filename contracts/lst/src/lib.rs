@@ -89,6 +89,7 @@ pub struct ContractData {
     stake_amount_to_settle: u128,
     unstake_amount_to_settle: u128,
     last_settlement_epoch: EpochHeight,
+    last_settlement_initiated_epoch: EpochHeight,
 }
 
 #[near(serializers = [borsh])]
@@ -161,6 +162,7 @@ impl Contract {
                 stake_amount_to_settle: 0,
                 unstake_amount_to_settle: 0,
                 last_settlement_epoch: 0,
+                last_settlement_initiated_epoch: 0,
             }),
         };
 
